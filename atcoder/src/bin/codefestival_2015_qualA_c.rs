@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 #[allow(clippy::needless_range_loop)]
 fn main() {
     let mut scanner = Scanner::default();
