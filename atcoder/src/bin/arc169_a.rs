@@ -3,36 +3,43 @@ fn main() {
     let mut scanner = Scanner::create();
     let n: usize = scanner.cin();
     let a: Vec<i128> = scanner.vec(n);
-    let mut p = vec![0; n];
+    let p: Vec<usize> = scanner.vec::<usize>(n - 1)
+        .iter()
+        .map(|&x| x - 1)
+        .collect();
+
+    // distance from A_0.
+    let mut deps: Vec<usize> = vec![0; n];
     for i in 1..n {
-        let pi: usize = scanner.cin::<usize>() - 1;
-        p[i] = pi;
+        let src = i;
+        let dst = p[src - 1];
+        deps[src] = deps[dst] + 1;
     }
 
-    let mut deps = vec![0; n];
-    for i in 1..n {
-        deps[i] = deps[p[i]] + 1;
+    debug!("{:?}", deps);
+    let mut diffs_by_deps = vec![0; n];
+    for u in 0..n {
+        diffs_by_deps[deps[u]] += a[u];
     }
 
-    let mut sums = vec![0; n];
-    for i in 0..n {
-        sums[deps[i]] += a[i];
-    }
+    debug!("{:?}", diffs_by_deps);
+    let nonzero = diffs_by_deps
+        .iter()
+        .rev()
+        .find(|&&x| x != 0);
 
-    debug!("deps={:?}", deps);
-    debug!("sums={:?}", sums);
-
-    for i in (0..n).rev() {
-        if sums[i] < 0 {
-            println!("-");
-            return;
-        }
-        if sums[i] > 0 {
-            println!("+");
-            return;
-        }
+    let ans;
+    if let Some(val) = nonzero {
+        ans = match val.cmp(&0) {
+            std::cmp::Ordering::Less => "-",
+            std::cmp::Ordering::Greater => "+",
+            std::cmp::Ordering::Equal => panic!("val must not be zero."),
+        };
     }
-    println!("0");
+    else {
+        ans = "0";
+    }
+    println!("{}", ans);
 }
 
 use std::io::Write;
