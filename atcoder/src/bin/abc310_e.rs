@@ -10,11 +10,11 @@ fn main() {
         a[i] = ai;
     }
 
-    let mut dp: Vec<Vec<usize>> = ndarray!(0; n, 2);
+    let mut dp = ndarray!(0; n, 2);
     dp[0][a[0]] = 1;
 
     fn nand(x: usize, y: usize) -> usize {
-        if x == y && x == 1 {
+        if x == 1 && y == 1 {
             return 0;
         }
         1
@@ -26,10 +26,10 @@ fn main() {
         dp[i][a[i]] += 1;
     }
 
-    let mut ans = 0;
-    for row in dp {
-        ans += row[1];
-    }
+    let ans: usize = dp
+        .iter()
+        .map(|x| x[1])
+        .sum();
     println!("{}", ans);
 }
 
