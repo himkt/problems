@@ -2,20 +2,14 @@ pub struct Solver {
     cache: HashMap<(usize, usize, usize), f64>,
 }
 
-#[allow(clippy::new_without_default)]
 impl Solver {
-    pub fn new() -> Self {
-        Self { cache: HashMap::new() }
-    }
-
-    pub fn solve(&mut self, a: usize, b: usize, c: usize) -> f64 {
-        debug!("solve({}, {}, {})", a, b, c);
-        if [a, b, c].iter().any(|&x| x == 100) {
-            return 0.0;
-        }
-
+    fn expectation(&mut self, a: usize, b: usize, c: usize) -> f64 {
         if let Some(&e) = self.cache.get(&(a, b, c)) {
             return e;
+        }
+
+        if [a, b, c].iter().any(|&x| x == 100) {
+            return 0.0;
         }
 
         let af = a as f64;
@@ -23,12 +17,13 @@ impl Solver {
         let cf = c as f64;
         let zf = af + bf + cf;
 
-        let p = (af / zf) * (self.solve(a + 1, b, c) + 1.0)
-                   + (bf / zf) * (self.solve(a, b + 1, c) + 1.0)
-                   + (cf / zf) * (self.solve(a, b, c + 1) + 1.0);
+        let ea = (af / zf) * (self.expectation(a + 1, b, c) + 1.0);
+        let eb = (bf / zf) * (self.expectation(a, b + 1, c) + 1.0);
+        let ec = (cf / zf) * (self.expectation(a, b, c + 1) + 1.0);
 
-        self.cache.insert((a, b, c), p);
-        p
+        let e = ea + eb + ec;
+        self.cache.insert((a, b, c), e);
+        e
     }
 }
 
@@ -39,10 +34,8 @@ fn main() {
     let b: usize = scanner.cin();
     let c: usize = scanner.cin();
 
-    let mut solver = Solver::new();
-    let ans = solver.solve(a, b, c);
-    // debug!("{:?}", solver.cache);
-    println!("{}", ans);
+    let mut solver = Solver {cache: HashMap::new()};
+    println!("{}", solver.expectation(a, b, c));
 }
 
 use std::{io::Write, collections::HashMap};
