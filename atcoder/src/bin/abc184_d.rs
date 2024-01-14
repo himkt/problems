@@ -1,10 +1,16 @@
-pub struct Solver {
-    cache: HashMap<(usize, usize, usize), f64>,
+struct Solver {
+    memo: HashMap<(usize, usize, usize), f64>,
 }
 
 impl Solver {
-    fn expectation(&mut self, a: usize, b: usize, c: usize) -> f64 {
-        if let Some(&e) = self.cache.get(&(a, b, c)) {
+    fn new() -> Self {
+        Solver {
+            memo: HashMap::new(),
+        }
+    }
+
+    fn solve(&mut self, a: usize, b: usize, c: usize) -> f64 {
+        if let Some(&e) = self.memo.get(&(a, b, c)) {
             return e;
         }
 
@@ -17,12 +23,13 @@ impl Solver {
         let cf = c as f64;
         let zf = af + bf + cf;
 
-        let ea = (af / zf) * (self.expectation(a + 1, b, c) + 1.0);
-        let eb = (bf / zf) * (self.expectation(a, b + 1, c) + 1.0);
-        let ec = (cf / zf) * (self.expectation(a, b, c + 1) + 1.0);
+        let e =
+            (af / zf) * (1.0 + self.solve(a + 1, b, c))
+          + (bf / zf) * (1.0 + self.solve(a, b + 1, c))
+          + (cf / zf) * (1.0 + self.solve(a, b, c + 1));
 
-        let e = ea + eb + ec;
-        self.cache.insert((a, b, c), e);
+        debug!("{}, {}, {} => {}", a, b, c, e);
+        self.memo.insert((a, b, c), e);
         e
     }
 }
@@ -33,9 +40,8 @@ fn main() {
     let a: usize = scanner.cin();
     let b: usize = scanner.cin();
     let c: usize = scanner.cin();
-
-    let mut solver = Solver {cache: HashMap::new()};
-    println!("{}", solver.expectation(a, b, c));
+    let mut solver = Solver::new();
+    println!("{}", solver.solve(a, b, c));
 }
 
 use std::{io::Write, collections::HashMap};
