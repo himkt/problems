@@ -5,34 +5,33 @@ fn multiply(a: usize, b: usize) -> usize {
 }
 
 fn solve(n: usize) -> usize {
-    let mut ans: usize = 0;
+    let mut ans = 0;
 
+    // [1]
+    ans += (n as f64).sqrt() as usize;
+    ans %= MOD;
+
+    // [2]
     let mut y = 1;
-    while y * y <= n {
-        let v1 = multiply(n / y - y, y - 1);
-        let v2 = multiply(v1, 6);
-        ans += v2;
+    while y * y < n {
+        ans += multiply(3, (n / y) - y);
         ans %= MOD;
         y += 1;
     }
 
-    let mut y = 1;
+    // [3]
+    let mut y = 2;
     while y * y <= n {
-        ans += multiply(n / y - y, 3);
+        ans += multiply(3, y - 1);
         ans %= MOD;
         y += 1;
     }
 
-    let mut y = 1;
-    while y * y <= n {
-        ans += multiply(y - 1, 3);
-        ans %= MOD;
-        y += 1;
-    }
-
-    let mut y = 1;
-    while y * y <= n {
-        ans += 1;
+    // [4]
+    let mut y = 2;
+    while y * y < n {
+        let cmb = multiply((n / y) - y , y - 1);
+        ans += multiply(6, cmb);
         ans %= MOD;
         y += 1;
     }
