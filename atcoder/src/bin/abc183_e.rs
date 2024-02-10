@@ -1,3 +1,4 @@
+// WA
 const MOD: usize = 1_000_000_007;
 
 #[allow(clippy::needless_range_loop)]
@@ -5,46 +6,82 @@ fn main() {
     let mut scanner = Scanner::create();
     let h: usize = scanner.cin();
     let w: usize = scanner.cin();
-    let mut board: Vec<Vec<char>> = vec![];
+
+    let mut board = vec![];
     for _ in 0..h {
-        board.push(scanner.cin::<String>().chars().collect());
+        board.push(scanner.chars());
     }
 
-    let mut dp = ndarray!(0; h + 1, w + 1);
-    let mut dpl = ndarray!(0; h + 1, w + 1);
-    let mut dpu = ndarray!(0; h + 1, w + 1);
-    let mut dplu = ndarray!(0; h + 1, w + 1);
+    let mut dp = ndarray!(0; h, w);
+    let mut cumsum = ndarray!(0; 3, h, w);
 
-    for i in 1..=h {
-        for j in 1..=w {
-            if i == 1 && j == 1 {
-                dp[i][j] = 1;
+    dp[0][0] = 1;
+    for k in 0..3 {
+        cumsum[k][0][0] = 1;
+    }
+
+    for i in 0..h {
+        for j in 0..w {
+            debug!("i={}, j={}", i, j);
+            if i == 0 && j == 0 {
+                continue;
             }
 
-            dp[i][j] += dpu[i - 1][j];
-            dp[i][j] += dpl[i][j - 1];
-            dp[i][j] += dplu[i - 1][j - 1];
-            dp[i][j] %= MOD;
-
-            dpu[i][j] = (dpu[i - 1][j] + dp[i][j]) % MOD;
-            dpl[i][j] = (dpl[i][j - 1] + dp[i][j]) % MOD;
-            dplu[i][j] = (dplu[i - 1][j - 1] + dp[i][j]) % MOD;
-
-            if board[i - 1][j - 1] == '#' {
+            if board[i][j] == '#' {
                 dp[i][j] = 0;
-                dpl[i][j] = 0;
-                dpu[i][j] = 0;
-                dplu[i][j] = 0;
+                for k in 0..3 {
+                    cumsum[k][i][j] = 0;
+                }
+                continue;
             }
+
+            if i > 0 {
+                dp[i][j] += cumsum[0][i - 1][j];
+                dp[i][j] %= MOD;
+            }
+            if j > 0 {
+                dp[i][j] += cumsum[1][i][j - 1];
+                dp[i][j] %= MOD;
+            }
+            if i > 0 && j > 0 {
+                dp[i][j] += cumsum[2][i - 1][j - 1];
+                dp[i][j] %= MOD;
+            }
+
+            for k in 0..3 {
+                cumsum[k][i][j] = dp[i][j];
+            }
+
+            if i > 0 {
+                cumsum[0][i][j] += cumsum[0][i - 1][j];
+                cumsum[0][i][j] %= MOD;
+            }
+            if j > 0 {
+                cumsum[1][i][j] += cumsum[1][i][j - 1];
+                cumsum[1][i][j] %= MOD;
+            }
+            if i > 0 && j > 0 {
+                cumsum[2][i][j] += cumsum[2][i - 1][j - 1];
+                cumsum[2][i][j] %= MOD;
+            }
+
         }
     }
 
-    debug!("{:?}", dp);
-    debug!("{:?}", dpu);
-    debug!("{:?}", dpl);
-    debug!("{:?}", dplu);
+    debug!("# dp");
+    for row in dp.iter() {
+        debug!("{:?}", row);
+    }
 
-    println!("{}", dp[h][w]);
+    debug!("# cumsum");
+    for k in 0..3 {
+        debug!("k={}", k);
+        for row in cumsum[k].iter() {
+            debug!("{:?}", row);
+        }
+    }
+
+    println!("{}", dp[h-1][w-1]);
 }
 
 use std::io::Write;
@@ -76,6 +113,9 @@ impl Scanner {
     }
     pub fn flush(&self) {
         std::io::stdout().flush().unwrap();
+    }
+    pub fn chars(&mut self) -> Vec<char> {
+        self.cin::<String>().chars().collect()
     }
 }
 
