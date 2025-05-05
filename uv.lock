@@ -3,6 +3,17 @@ revision = 1
 requires-python = ">=3.13"
 
 [[package]]
+name = "ac-library-python"
+version = "0.0.1"
+source = { git = "https://github.com/not522/ac-library-python.git#27fdbb71cd0d566bdeb12746db59c9d908c6b5d5" }
+
+[[package]]
 name = "problems"
 version = "0.1.0"
 source = { virtual = "." }
+dependencies = [
+    { name = "ac-library-python" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "ac-library-python", git = "https://github.com/not522/ac-library-python.git" }]
