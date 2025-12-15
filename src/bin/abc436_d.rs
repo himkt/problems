@@ -11,7 +11,6 @@ enum Action {
 fn main() {
     input! { h: usize, w: usize, raw_board: [String; h] };
     let mut board: Vec<Vec<char>> = raw_board.iter().map(|s| s.chars().collect()).collect();
-    let mut used = vec![vec![false; w]; h];
     let mut dist = vec![vec![INF; w]; h];
 
     let mut warps_by_alphabet: HashMap<char, Vec<(usize, usize)>> = HashMap::new();
@@ -35,7 +34,7 @@ fn main() {
         }
     }
 
-    let nexts = |p: usize, q: usize, d: usize, used: &mut Vec<Vec<bool>>, dist: &mut Vec<Vec<usize>>, used_warp: &mut HashSet<char>| -> Vec<(usize, usize)> {
+    let nexts = |p: usize, q: usize, d: usize, dist: &mut Vec<Vec<usize>>, used_warp: &mut HashSet<char>| -> Vec<(usize, usize)> {
         let mut xys = vec![];
         if board[p][q] != '.' && board[p][q] != '#' && !used_warp.contains(&board[p][q]) {
             // println!("from ({}, {}) found warp!", p, q);
@@ -43,14 +42,10 @@ fn main() {
                 if (p, q) == (x, y) {
                     continue;
                 }
-                if used[x][y] {
-                    continue;
-                }
                 if 1 + d >= dist[x][y] {
                     continue;
                 }
                 dist[x][y] = 1 + d;
-                used[x][y] = true;
                 xys.push((x, y));
             }
             used_warp.insert(board[p][q]);
@@ -87,14 +82,10 @@ fn main() {
             if board[x][y] == '#' {
                 continue;
             }
-            if used[x][y] {
-                continue;
-            }
             if 1 + d >= dist[x][y] {
                 continue;
             }
             dist[x][y] = 1 + d;
-            used[x][y] = true;
             xys.push((x, y));
         }
         // println!("({}, {}) -> {:?}", p, q, xys);
@@ -102,16 +93,15 @@ fn main() {
     };
 
     dist[0][0] = 0;
-    used[0][0] = true;
     let mut used_warp: HashSet<char> = HashSet::new();
 
     let mut queue: BinaryHeap<(Reverse<usize>, (usize, usize))> = BinaryHeap::new();
-    for (p, q) in nexts(0, 0, 0, &mut used, &mut dist, &mut used_warp) {
+    for (p, q) in nexts(0, 0, 0, &mut dist, &mut used_warp) {
         queue.push((Reverse(1), (p, q)));
     }
 
     while let Some((Reverse(d), (p, q))) = queue.pop() {
-        for (x, y) in nexts(p, q, d, &mut used, &mut dist, &mut used_warp) {
+        for (x, y) in nexts(p, q, d, &mut dist, &mut used_warp) {
             queue.push((Reverse(1 + d), (x, y)));
         }
     }
